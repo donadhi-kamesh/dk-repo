@@ -1,17 +1,22 @@
 [
-  {
-    "url": "https://raw.githubusercontent.com/donadhi-kamesh/dk-repo/main/VidFastProvider.cs3",
-    "status": 1,
-    "version": 1,
-    "apiVersion": 1,
-    "name": "VidFast",
-    "internalName": "VidFastProvider",
-    "authors": ["DK"],
-    "description": "Watch Movies & TV Shows via VidFast (vidfast.pro)",
-    "repositoryUrl": "https://github.com/donadhi-kamesh/dk-repo",
-    "tvTypes": ["Movie", "TvSeries"],
-    "language": "en",
-    "iconUrl": "https://www.google.com/s2/favicons?domain=vidfast.pro&sz=%size%",
-    "fileSize": null
-  }
+    {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=vidfast.pro&sz=%size%",
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/donadhi-kamesh/dk-repo",
+        "fileSize": 27260,
+        "status": 1,
+        "language": "en",
+        "authors": [
+            "DK"
+        ],
+        "tvTypes": [
+            "TvSeries",
+            "Movie"
+        ],
+        "version": 1,
+        "internalName": "VidFastProvider",
+        "description": "Watch Movies & TV Shows via VidFast (vidfast.pro)",
+        "url": "https://raw.githubusercontent.com/donadhi-kamesh/dk-repo/builds/VidFastProvider.cs3",
+        "name": "VidFastProvider"
+    }
 ]
