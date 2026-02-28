@@ -203,7 +203,12 @@ class VidFastProvider : MainAPI() {
         val tmdbId   = id?.toString() ?: return null
         val itemName = title ?: name ?: return null
         val poster   = posterPath?.let { "https://image.tmdb.org/t/p/w500$it" }
-        val isMovie  = title != null || mediaType == "movie"
+
+        // Skip person/company results (e.g. from trending endpoint)
+        if (mediaType == "person") return null
+
+        // mediaType is "movie" or null (movie-only endpoints); otherwise treat as TV
+        val isMovie = mediaType == "movie" || (mediaType == null && title != null)
 
         return if (isMovie) {
             newMovieSearchResponse(itemName, "movie:$tmdbId", TvType.Movie) {
