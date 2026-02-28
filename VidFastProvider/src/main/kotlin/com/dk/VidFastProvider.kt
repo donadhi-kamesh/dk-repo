@@ -158,20 +158,96 @@ class VidFastProvider : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        val embedUrl = when {
+        val (vidFastUrl, tmdbId) = when {
             data.startsWith("{\"tmdbId\"") -> {
                 val movieData = parseJson<MovieData>(data)
-                "$mainUrl/embed/movie/${movieData.tmdbId}?autoPlay=true"
+                "$mainUrl/movie/${movieData.tmdbId}" to movieData.tmdbId
             }
             data.startsWith("{\"episodeTmdbId\"") -> {
                 val epData = parseJson<EpisodeData>(data)
-                "$mainUrl/embed/tv/${epData.episodeTmdbId}/${epData.season}/${epData.episode}?autoPlay=true"
+                "$mainUrl/tv/${epData.episodeTmdbId}/${epData.season}/${epData.episode}" to epData.episodeTmdbId
             }
             else -> return false
         }
-        loadExtractor(embedUrl, mainUrl, subtitleCallback, callback)
+
+        try {
+            // Step 1: Fetch the VidFast page
+            val pageHtml = app.get(vidFastUrl, referer = mainUrl).text
+
+            // Step 2: Extract the 'en' token from Next.js inline script data
+            val enToken = Regex(""""en":"([^"]+)"""").find(pageHtml)?.groupValues?.get(1)
+
+            // Step 3: Find the hezushon API path from inline scripts
+            val apiPathRegex = Regex("""(/hezushon/cu/[^"]+/krI/)""")
+            val apiBasePath = apiPathRegex.find(pageHtml)?.groupValues?.get(1)
+
+            if (enToken != null && apiBasePath != null) {
+                // Step 4: Call the server list API
+                // The signature is derived from the en token — try using it directly
+                val serverListUrl = "$mainUrl${apiBasePath}${enToken}"
+                val serverResp = app.get(serverListUrl, referer = vidFastUrl).text
+
+                // Step 5: Parse server list — it's a JSON array of {name, data} objects
+                val servers = try {
+                    parseJson<List<VidFastServer>>(serverResp)
+                } catch (e: Exception) { emptyList() }
+
+                for (server in servers) {
+                    try {
+                        // Step 6: Get the m3u8 URL for this server
+                        val streamApiUrl = "$mainUrl${apiBasePath.replace("/krI/", "/L5aN/")}${server.data}"
+                        val streamResp = app.get(streamApiUrl, referer = vidFastUrl).text
+                        val streamData = parseJson<VidFastStream>(streamResp)
+
+                        val m3u8Url = streamData.url ?: continue
+                        callback.invoke(
+                            ExtractorLink(
+                                source = name,
+                                name = "$name - ${server.name}",
+                                url = m3u8Url,
+                                referer = mainUrl,
+                                quality = Qualities.Unknown.value,
+                                isM3u8 = true
+                            )
+                        )
+                    } catch (_: Exception) { }
+                }
+            }
+
+            // Step 7: Fetch subtitles from wyzie
+            try {
+                val subResp = app.get("https://sub.wyzie.ru/search?id=$tmdbId").text
+                val subs = parseJson<List<WyzieSub>>(subResp)
+                for (sub in subs) {
+                    subtitleCallback.invoke(
+                        SubtitleFile(
+                            lang = sub.display ?: sub.language ?: "Unknown",
+                            url = sub.url ?: continue
+                        )
+                    )
+                }
+            } catch (_: Exception) { }
+
+        } catch (_: Exception) { }
+
         return true
     }
+
+    // ─── VidFast API Models ──────────────────────────────────────────────────
+    data class VidFastServer(
+        @JsonProperty("name") val name: String? = null,
+        @JsonProperty("data") val data: String? = null,
+    )
+
+    data class VidFastStream(
+        @JsonProperty("url") val url: String? = null,
+    )
+
+    data class WyzieSub(
+        @JsonProperty("url") val url: String? = null,
+        @JsonProperty("display") val display: String? = null,
+        @JsonProperty("language") val language: String? = null,
+    )
 
     // ─── Data Classes ────────────────────────────────────────────────────────
     data class MovieData(
