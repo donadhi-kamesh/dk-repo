@@ -202,21 +202,21 @@ class VidFastProvider : MainAPI() {
         @JsonProperty("vote_average")   val voteAverage: Double? = null,
         @JsonProperty("release_date")   val releaseDate: String? = null,
         @JsonProperty("first_air_date") val firstAirDate: String? = null,
-    ) {
-        fun toSearchResponse(): SearchResponse? {
-            val tmdbId   = id?.toString() ?: return null
-            val itemName = title ?: name ?: return null
-            val poster   = posterPath?.let { "https://image.tmdb.org/t/p/w500$it" }
-            val isMovie  = title != null || mediaType == "movie"
+    )
 
-            return if (isMovie) {
-                newMovieSearchResponse(itemName, "movie:$tmdbId", TvType.Movie) {
-                    posterUrl = poster
-                }
-            } else {
-                newTvSeriesSearchResponse(itemName, "tv:$tmdbId", TvType.TvSeries) {
-                    posterUrl = poster
-                }
+    private fun TmdbItem.toSearchResponse(): SearchResponse? {
+        val tmdbId   = id?.toString() ?: return null
+        val itemName = title ?: name ?: return null
+        val poster   = posterPath?.let { "https://image.tmdb.org/t/p/w500$it" }
+        val isMovie  = title != null || mediaType == "movie"
+
+        return if (isMovie) {
+            newMovieSearchResponse(itemName, "movie:$tmdbId", TvType.Movie) {
+                this.posterUrl = poster
+            }
+        } else {
+            newTvSeriesSearchResponse(itemName, "tv:$tmdbId", TvType.TvSeries) {
+                this.posterUrl = poster
             }
         }
     }
