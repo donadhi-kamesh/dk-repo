@@ -16,7 +16,7 @@
         "version": 1,
         "internalName": "VidFastProvider",
         "description": "Watch Movies & TV Shows via VidFast (vidfast.pro)",
-        "url": "https://raw.githubusercontent.com/donadhi-kamesh/dk-repo/builds/VidFastProvider.cs3",
+        "url": "https://raw.githubusercontent.com/donadhi-kamesh/dk-repo/main/VidFastProvider.cs3",
         "name": "VidFastProvider"
     }
 ]
