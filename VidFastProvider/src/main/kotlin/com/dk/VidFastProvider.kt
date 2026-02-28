@@ -118,9 +118,11 @@ class VidFastProvider : MainAPI() {
                     season      = sNum,
                     episode     = epNum,
                     posterUrl   = ep.stillPath?.let { "$tmdbImageUrl$it" },
-                    rating      = ep.voteAverage?.times(10)?.toInt(),
                     description = ep.overview,
-                ).apply { addDate(ep.airDate) }
+                ).apply { 
+                    addDate(ep.airDate)
+                    rating = ep.voteAverage?.times(10)?.toInt()
+                }
             } ?: emptyList()
         } ?: emptyList()
 
@@ -209,11 +211,11 @@ class VidFastProvider : MainAPI() {
 
             return if (isMovie) {
                 newMovieSearchResponse(itemName, "movie:$tmdbId", TvType.Movie) {
-                    this.posterUrl = poster
+                    posterUrl = poster
                 }
             } else {
                 newTvSeriesSearchResponse(itemName, "tv:$tmdbId", TvType.TvSeries) {
-                    this.posterUrl = poster
+                    posterUrl = poster
                 }
             }
         }
