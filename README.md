@@ -6,7 +6,7 @@ A CloudStream 3 extensions repository containing custom streaming providers.
 
 | Plugin | Version | Language | Status |
 |--------|---------|----------|--------|
-| VidFastProvider | 1 | 🌐 Multi | ✅ Working |
+| VidFastProvider | 1 | 🇬🇧 en | ✅ Working |
 
 ## Installation
 

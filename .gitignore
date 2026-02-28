@@ -1,6 +1,5 @@
 *.iml
 .gradle
-/local.properties
 /.idea
 .DS_Store
 /build
@@ -12,3 +11,5 @@ local.properties
 **/*.cs3
 **/*.jar
 !gradle/wrapper/gradle-wrapper.jar
+repo.json
+plugins.json

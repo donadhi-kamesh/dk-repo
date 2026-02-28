@@ -1,8 +1,0 @@
-{
-    "name": "DK Repo",
-    "description": "CloudStream extensions by DK — VidFast provider",
-    "manifestVersion": 1,
-    "pluginLists": [
-        "https://raw.githubusercontent.com/donadhi-kamesh/dk-repo/main/plugins.json"
-    ]
-}
