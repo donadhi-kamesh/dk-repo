@@ -51,4 +51,5 @@ jobs:
           sed -i 's/\/builds\//\/main\//g' plugins.json
           git add -f *.cs3 plugins.json || true
           git diff --staged --quiet || git commit -m "Build: $GITHUB_SHA [skip ci]"
+          git pull --rebase
           git push
