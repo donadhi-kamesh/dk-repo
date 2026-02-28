@@ -5,6 +5,15 @@ concurrency:
   cancel-in-progress: true
 
 on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '*.md'
+      - '*.cs3'
+      - '*.jar'
+      - 'plugins.json'
+      - 'repo.json'
   workflow_dispatch:
 
 permissions:

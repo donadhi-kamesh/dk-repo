@@ -16,6 +16,8 @@ A CloudStream 3 extensions repository containing custom streaming providers.
    ```
    https://raw.githubusercontent.com/donadhi-kamesh/dk-repo/main/plugins.json
    ```
+   *Alternative:* In a browser on your phone, you can directly tap this link:
+   `cloudstreamrepo://raw.githubusercontent.com/donadhi-kamesh/dk-repo/main/plugins.json`
 4. Install desired extensions
 
 ## Providers
