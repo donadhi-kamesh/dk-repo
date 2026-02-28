@@ -1,3 +1,11 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
 rootProject.name = "DkRepo"
 
 // This file sets what projects are included.
