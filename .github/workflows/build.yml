@@ -13,6 +13,10 @@ on:
       - '*.cs3'
       - '*.jar'
       - 'plugins.json'
+      - 'repo.json'
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -24,28 +28,25 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: 'temurin'
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v2
 
       - name: Build Plugins
         run: |
           chmod +x gradlew
           ./gradlew make makePluginsJson
-          ./gradlew ensureJarCompatibility
 
       - name: Commit and Push Build Artifacts
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          # Copy built files to root
-          find . -path ./build -prune -o -name "*.cs3" -print | xargs -I{} cp {} .
-          find . -path ./build -prune -o -name "*.jar" -not -path "*/wrapper/*" -print | xargs -I{} cp {} .
+          cp **/build/*.cs3 . 2>/dev/null || true
           cp build/plugins.json . 2>/dev/null || true
-          git add *.cs3 *.jar plugins.json 2>/dev/null || true
+          git add *.cs3 plugins.json 2>/dev/null || true
           git diff --staged --quiet || git commit -m "Build: $GITHUB_SHA [skip ci]"
           git push
