@@ -14,10 +14,10 @@ A CloudStream 3 extensions repository containing custom streaming providers.
 2. Go to **Settings → Extensions → Add Repository**
 3. Enter the repository URL:
    ```
-   https://raw.githubusercontent.com/donadhi-kamesh/dk-repo/main/plugins.json
+   https://raw.githubusercontent.com/donadhi-kamesh/dk-repo/main/repo.json
    ```
    *Alternative:* In a browser on your phone, you can directly tap this link:
-   `cloudstreamrepo://raw.githubusercontent.com/donadhi-kamesh/dk-repo/main/plugins.json`
+   `cloudstreamrepo://raw.githubusercontent.com/donadhi-kamesh/dk-repo/main/repo.json`
 4. Install desired extensions
 
 ## Providers
