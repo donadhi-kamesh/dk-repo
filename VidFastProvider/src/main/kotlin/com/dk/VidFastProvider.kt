@@ -7,6 +7,8 @@ import com.lagradost.cloudstream3.LoadResponse.Companion.addTMDbId
 import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
+import com.lagradost.cloudstream3.utils.ExtractorLinkType
+import com.lagradost.cloudstream3.utils.newExtractorLink
 
 /**
  * VidFastProvider – DK Repo
@@ -201,14 +203,15 @@ class VidFastProvider : MainAPI() {
 
                         val m3u8Url = streamData.url ?: continue
                         callback.invoke(
-                            ExtractorLink(
+                            newExtractorLink(
                                 source = name,
                                 name = "$name - ${server.name}",
                                 url = m3u8Url,
-                                referer = mainUrl,
-                                quality = Qualities.Unknown.value,
-                                isM3u8 = true
-                            )
+                                type = ExtractorLinkType.M3U8
+                            ) {
+                                this.referer = mainUrl
+                                this.quality = Qualities.Unknown.value
+                            }
                         )
                     } catch (_: Exception) { }
                 }
