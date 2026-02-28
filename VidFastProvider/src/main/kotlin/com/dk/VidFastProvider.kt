@@ -154,6 +154,17 @@ class VidFastProvider : MainAPI() {
     }
 
     // ─── Load Links ──────────────────────────────────────────────────────────
+
+    // Static API path segments — hardcoded in VidFast's JS bundle (365-*.js)
+    // These are the same for ALL movies/shows and do not change per request
+    private val apiBasePath = "/hezushon/cu/" +
+        "1c971a0506a9ccbd81f3d418200a6389b87859a6/" +
+        "APA91MSAX28_PU-wlI0-o0yb20QnaJc86iw7KTji8Mz5UeDN56gC9NuxDesrOoNU1zEM95-KBg811zMVm40xMEFVL4YA6PttSoeweep0uh9YbC7l3joL-MuhCACz5lsNgiW4hME6axwAW8zfHj198wl646Ln9cfyJv3M17J1-PD4ocZXgumXl54/" +
+        "a0a1cce2/j/" +
+        "1000074535403666/" +
+        "b2bbf815-5324-52fa-a719-13a0fcc45221/" +
+        "e8f43625a0cf6e68f50bb8f1870683ba8c926aed5d9d25dd19789ef16f7c3040"
+
     override suspend fun loadLinks(
         data: String,
         isCasting: Boolean,
@@ -173,64 +184,64 @@ class VidFastProvider : MainAPI() {
         }
 
         try {
-            // Step 1: Fetch the VidFast page
+            // Step 1: Fetch the VidFast page to get the 'en' token
             val pageHtml = app.get(vidFastUrl, referer = mainUrl).text
 
-            // Step 2: Extract the 'en' token from Next.js inline script data
+            // Step 2: Extract the 'en' token from Next.js self.__next_f.push data
             val enToken = Regex(""""en":"([^"]+)"""").find(pageHtml)?.groupValues?.get(1)
+                ?: return true
 
-            // Step 3: Find the hezushon API path from inline scripts
-            val apiPathRegex = Regex("""(/hezushon/cu/[^"]+/krI/)""")
-            val apiBasePath = apiPathRegex.find(pageHtml)?.groupValues?.get(1)
+            // Step 3: Call the server list API
+            val serverListUrl = "$mainUrl$apiBasePath/krI/$enToken"
+            val serverResp = app.get(
+                serverListUrl,
+                referer = vidFastUrl,
+                headers = mapOf("User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            ).text
 
-            if (enToken != null && apiBasePath != null) {
-                // Step 4: Call the server list API
-                // The signature is derived from the en token — try using it directly
-                val serverListUrl = "$mainUrl${apiBasePath}${enToken}"
-                val serverResp = app.get(serverListUrl, referer = vidFastUrl).text
+            // Step 4: Parse server list
+            val servers = try {
+                parseJson<List<VidFastServer>>(serverResp)
+            } catch (_: Exception) { emptyList() }
 
-                // Step 5: Parse server list — it's a JSON array of {name, data} objects
-                val servers = try {
-                    parseJson<List<VidFastServer>>(serverResp)
-                } catch (e: Exception) { emptyList() }
+            // Step 5: For each server, get the m3u8 stream URL
+            for (server in servers) {
+                try {
+                    val serverData = server.data ?: continue
+                    val streamApiUrl = "$mainUrl$apiBasePath/L5aN/$serverData"
+                    val streamResp = app.get(
+                        streamApiUrl,
+                        referer = vidFastUrl,
+                        headers = mapOf("User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    ).text
+                    val streamData = parseJson<VidFastStream>(streamResp)
 
-                for (server in servers) {
-                    try {
-                        // Step 6: Get the m3u8 URL for this server
-                        val streamApiUrl = "$mainUrl${apiBasePath.replace("/krI/", "/L5aN/")}${server.data}"
-                        val streamResp = app.get(streamApiUrl, referer = vidFastUrl).text
-                        val streamData = parseJson<VidFastStream>(streamResp)
-
-                        val m3u8Url = streamData.url ?: continue
-                        callback.invoke(
-                            newExtractorLink(
-                                source = name,
-                                name = "$name - ${server.name}",
-                                url = m3u8Url,
-                                type = ExtractorLinkType.M3U8
-                            ) {
-                                this.referer = mainUrl
-                                this.quality = Qualities.Unknown.value
-                            }
-                        )
-                    } catch (_: Exception) { }
-                }
-            }
-
-            // Step 7: Fetch subtitles from wyzie
-            try {
-                val subResp = app.get("https://sub.wyzie.ru/search?id=$tmdbId").text
-                val subs = parseJson<List<WyzieSub>>(subResp)
-                for (sub in subs) {
-                    subtitleCallback.invoke(
-                        SubtitleFile(
-                            lang = sub.display ?: sub.language ?: "Unknown",
-                            url = sub.url ?: continue
-                        )
+                    val m3u8Url = streamData.url ?: continue
+                    callback.invoke(
+                        newExtractorLink(
+                            source = name,
+                            name = "$name - ${server.name ?: "Server"}",
+                            url = m3u8Url,
+                            type = ExtractorLinkType.M3U8
+                        ) {
+                            this.referer = mainUrl
+                            this.quality = Qualities.Unknown.value
+                        }
                     )
-                }
-            } catch (_: Exception) { }
 
+                    // Extract subtitles from stream response tracks
+                    streamData.tracks?.forEach { track ->
+                        if (track.kind == "captions" || track.kind == "subtitles") {
+                            subtitleCallback.invoke(
+                                SubtitleFile(
+                                    lang = track.label ?: "Unknown",
+                                    url = track.file ?: return@forEach
+                                )
+                            )
+                        }
+                    }
+                } catch (_: Exception) { }
+            }
         } catch (_: Exception) { }
 
         return true
@@ -244,12 +255,13 @@ class VidFastProvider : MainAPI() {
 
     data class VidFastStream(
         @JsonProperty("url") val url: String? = null,
+        @JsonProperty("tracks") val tracks: List<VidFastTrack>? = null,
     )
 
-    data class WyzieSub(
-        @JsonProperty("url") val url: String? = null,
-        @JsonProperty("display") val display: String? = null,
-        @JsonProperty("language") val language: String? = null,
+    data class VidFastTrack(
+        @JsonProperty("file") val file: String? = null,
+        @JsonProperty("label") val label: String? = null,
+        @JsonProperty("kind") val kind: String? = null,
     )
 
     // ─── Data Classes ────────────────────────────────────────────────────────
