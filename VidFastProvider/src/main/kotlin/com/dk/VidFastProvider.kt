@@ -28,7 +28,7 @@ class VidFastProvider : MainAPI() {
 
     // ─── TMDB API ────────────────────────────────────────────────────────────
     private val tmdbApiUrl   = "https://api.themoviedb.org/3"
-    private val tmdbApiKey   = "8d6d91941230817f7807d6181306b6da" // public demo key
+    private val tmdbApiKey   = "167005118451cfe63da18e461dacd1d1"
     private val tmdbImageUrl = "https://image.tmdb.org/t/p/w500"
 
     // ─── Main Page ───────────────────────────────────────────────────────────
