@@ -61,9 +61,12 @@ class VidFastProvider : MainAPI() {
 
     // ─── Load ────────────────────────────────────────────────────────────────
     override suspend fun load(url: String): LoadResponse? {
-        val parts = url.split(":", limit = 2)
-        if (parts.size < 2) return null
-        val (mediaType, tmdbId) = parts
+        // URL format: https://vidfast.pro/movie/{tmdbId} or https://vidfast.pro/tv/{tmdbId}
+        val path = url.removePrefix(mainUrl).trimStart('/')
+        val segments = path.split("/")
+        if (segments.size < 2) return null
+        val mediaType = segments[0]
+        val tmdbId = segments[1]
         return when (mediaType) {
             "movie" -> loadMovie(tmdbId)
             "tv"    -> loadTvSeries(tmdbId)
@@ -78,7 +81,7 @@ class VidFastProvider : MainAPI() {
 
         return newMovieLoadResponse(
             name    = detail.title ?: detail.originalTitle ?: return null,
-            url     = "movie:$tmdbId",
+            url     = "$mainUrl/movie/$tmdbId",
             type    = TvType.Movie,
             dataUrl = MovieData(tmdbId, detail.imdbId).toJson()
         ) {
@@ -124,7 +127,7 @@ class VidFastProvider : MainAPI() {
 
         return newTvSeriesLoadResponse(
             name     = detail.name ?: detail.originalName ?: return null,
-            url      = "tv:$tmdbId",
+            url      = "$mainUrl/tv/$tmdbId",
             type     = TvType.TvSeries,
             episodes = episodes
         ) {
@@ -211,11 +214,11 @@ class VidFastProvider : MainAPI() {
         val isMovie = mediaType == "movie" || (mediaType == null && title != null)
 
         return if (isMovie) {
-            newMovieSearchResponse(itemName, "movie:$tmdbId", TvType.Movie) {
+            newMovieSearchResponse(itemName, "$mainUrl/movie/$tmdbId", TvType.Movie) {
                 this.posterUrl = poster
             }
         } else {
-            newTvSeriesSearchResponse(itemName, "tv:$tmdbId", TvType.TvSeries) {
+            newTvSeriesSearchResponse(itemName, "$mainUrl/tv/$tmdbId", TvType.TvSeries) {
                 this.posterUrl = poster
             }
         }
