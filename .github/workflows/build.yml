@@ -48,6 +48,7 @@ jobs:
           git config --local user.name "GitHub Actions"
           find . -type f -name "*.cs3" -exec cp {} . \;
           cp build/plugins.json . 2>/dev/null || true
+          sed -i 's/\/builds\//\/main\//g' plugins.json
           git add -f *.cs3 plugins.json || true
           git diff --staged --quiet || git commit -m "Build: $GITHUB_SHA [skip ci]"
           git push
