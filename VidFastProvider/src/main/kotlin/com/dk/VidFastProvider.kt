@@ -14,8 +14,8 @@ import com.lagradost.cloudstream3.utils.AppUtils.toJson
  * Streams movies and TV shows from vidfast.pro using TMDB as the discovery
  * layer and VidFast embed URLs for actual playback.
  *
- * Movie embed : https://vidfast.pro/movie/{tmdbId}?autoPlay=true
- * TV embed    : https://vidfast.pro/tv/{tmdbId}/{season}/{episode}?autoPlay=true
+ * Movie embed : https://vidfast.pro/embed/movie/{tmdbId}?autoPlay=true
+ * TV embed    : https://vidfast.pro/embed/tv/{tmdbId}/{season}/{episode}?autoPlay=true
  */
 class VidFastProvider : MainAPI() {
 
@@ -158,11 +158,11 @@ class VidFastProvider : MainAPI() {
         val embedUrl = when {
             data.startsWith("{\"tmdbId\"") -> {
                 val movieData = parseJson<MovieData>(data)
-                "$mainUrl/movie/${movieData.tmdbId}?autoPlay=true"
+                "$mainUrl/embed/movie/${movieData.tmdbId}?autoPlay=true"
             }
             data.startsWith("{\"episodeTmdbId\"") -> {
                 val epData = parseJson<EpisodeData>(data)
-                "$mainUrl/tv/${epData.episodeTmdbId}/${epData.season}/${epData.episode}?autoPlay=true"
+                "$mainUrl/embed/tv/${epData.episodeTmdbId}/${epData.season}/${epData.episode}?autoPlay=true"
             }
             else -> return false
         }
