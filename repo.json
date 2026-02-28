@@ -1,0 +1,8 @@
+{
+    "name": "DK Repo",
+    "description": "CloudStream extensions by DK",
+    "manifestVersion": 1,
+    "pluginLists": [
+        "https://raw.githubusercontent.com/donadhi-kamesh/dk-repo/builds/plugins.json"
+    ]
+}
