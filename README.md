@@ -14,14 +14,14 @@ A CloudStream 3 extensions repository containing custom streaming providers.
 2. Go to **Settings → Extensions → Add Repository**
 3. Enter the repository URL:
    ```
-   https://raw.githubusercontent.com/YOUR_USERNAME/dk-repo/builds/plugins.json
+   https://raw.githubusercontent.com/donadhi-kamesh/dk-repo/main/plugins.json
    ```
 4. Install desired extensions
 
 ## Providers
 
 ### VidFastProvider
-Streams movies and TV shows using VidFast (vidfast.pro). 
+Streams movies and TV shows using VidFast (vidfast.pro).
 - Powered by TMDB for search & metadata
 - Supports Movies and TV Series
 - Multiple quality options (HD, 4K when available)

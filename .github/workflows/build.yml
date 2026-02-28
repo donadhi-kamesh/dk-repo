@@ -7,54 +7,45 @@ concurrency:
 on:
   push:
     branches:
-      - master
       - main
     paths-ignore:
       - '*.md'
+      - '*.cs3'
+      - '*.jar'
+      - 'plugins.json'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
         with:
-          path: "src"
-
-      - name: Checkout builds
-        uses: actions/checkout@master
-        with:
-          ref: "builds"
-          path: "builds"
-
-      - name: Clean old builds
-        run: |
-          rm $GITHUB_WORKSPACE/builds/*.cs3 || true
-          rm $GITHUB_WORKSPACE/builds/*.jar || true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup JDK 17
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: 17
+          distribution: 'temurin'
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
+        uses: android-actions/setup-android@v3
 
       - name: Build Plugins
         run: |
-          cd $GITHUB_WORKSPACE/src
           chmod +x gradlew
           ./gradlew make makePluginsJson
           ./gradlew ensureJarCompatibility
-          cp **/build/*.cs3 $GITHUB_WORKSPACE/builds
-          cp **/build/*.jar $GITHUB_WORKSPACE/builds
-          cp build/plugins.json $GITHUB_WORKSPACE/builds
 
-      - name: Push builds
+      - name: Commit and Push Build Artifacts
         run: |
-          cd $GITHUB_WORKSPACE/builds
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          git add .
-          git commit --amend -m "Build $GITHUB_SHA" || exit 0
-          git push --force
+          # Copy built files to root
+          find . -path ./build -prune -o -name "*.cs3" -print | xargs -I{} cp {} .
+          find . -path ./build -prune -o -name "*.jar" -not -path "*/wrapper/*" -print | xargs -I{} cp {} .
+          cp build/plugins.json . 2>/dev/null || true
+          git add *.cs3 *.jar plugins.json 2>/dev/null || true
+          git diff --staged --quiet || git commit -m "Build: $GITHUB_SHA [skip ci]"
+          git push
