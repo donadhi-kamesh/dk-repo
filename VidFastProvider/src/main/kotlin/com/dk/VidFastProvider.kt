@@ -205,18 +205,15 @@ class VidFastProvider : MainAPI() {
             val tmdbId   = id?.toString() ?: return null
             val itemName = title ?: name ?: return null
             val poster   = posterPath?.let { "https://image.tmdb.org/t/p/w500$it" }
-            val yr       = (releaseDate ?: firstAirDate)?.take(4)?.toIntOrNull()
             val isMovie  = title != null || mediaType == "movie"
 
             return if (isMovie) {
                 newMovieSearchResponse(itemName, "movie:$tmdbId", TvType.Movie) {
-                    posterUrl = poster
-                    year = yr
+                    this.posterUrl = poster
                 }
             } else {
-                newAnimeSearchResponse(itemName, "tv:$tmdbId", TvType.TvSeries) {
-                    posterUrl = poster
-                    this.year = yr
+                newTvSeriesSearchResponse(itemName, "tv:$tmdbId", TvType.TvSeries) {
+                    this.posterUrl = poster
                 }
             }
         }
