@@ -87,7 +87,6 @@ class VidFastProvider : MainAPI() {
             year                = detail.releaseDate?.take(4)?.toIntOrNull()
             plot                = detail.overview
             tags                = detail.genres?.mapNotNull { it.name }
-            rating              = detail.voteAverage?.times(10)?.toInt()
             duration            = detail.runtime
             actors              = detail.credits?.cast?.take(15)?.mapNotNull { cast ->
                 ActorData(Actor(cast.name ?: return@mapNotNull null,
@@ -112,16 +111,13 @@ class VidFastProvider : MainAPI() {
             ).parsedSafe<TmdbSeason>()
             seasonDetail?.episodes?.mapNotNull { ep ->
                 val epNum = ep.episodeNumber ?: return@mapNotNull null
-                Episode(
-                    data        = EpisodeData(tmdbId, sNum, epNum).toJson(),
-                    name        = ep.name,
-                    season      = sNum,
-                    episode     = epNum,
-                    posterUrl   = ep.stillPath?.let { "$tmdbImageUrl$it" },
-                    description = ep.overview,
-                ).apply { 
+                newEpisode(EpisodeData(tmdbId, sNum, epNum).toJson()) {
+                    this.name        = ep.name
+                    this.season      = sNum
+                    this.episode     = epNum
+                    this.posterUrl   = ep.stillPath?.let { "$tmdbImageUrl$it" }
+                    this.description = ep.overview
                     addDate(ep.airDate)
-                    rating = ep.voteAverage?.times(10)?.toInt()
                 }
             } ?: emptyList()
         } ?: emptyList()
@@ -137,7 +133,6 @@ class VidFastProvider : MainAPI() {
             year                = detail.firstAirDate?.take(4)?.toIntOrNull()
             plot                = detail.overview
             tags                = detail.genres?.mapNotNull { it.name }
-            rating              = detail.voteAverage?.times(10)?.toInt()
             showStatus          = when (detail.status) {
                 "Returning Series" -> ShowStatus.Ongoing
                 "Ended", "Canceled" -> ShowStatus.Completed
